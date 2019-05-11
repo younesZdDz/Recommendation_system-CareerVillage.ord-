@@ -4,8 +4,9 @@ sys.path.extend(['..'])
 import pandas as pd
 
 from utils.utils import TextProcessor
-from nlp.doc2vec import pipeline_d2v
-from nlp.lda import pipeline_lda
+from NLP.doc2vec import pipeline_d2v
+from NLP.lda import pipeline_lda
+from preprocessors.queproc import QueProc
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
@@ -59,4 +60,10 @@ if __name__ == '__main__':
     # calculate and save tag and industry embeddings on train data
     print('doc2vec: embeddings training')
     tag_embs, ind_embs, head_d2v, ques_d2v = pipeline_d2v(que_train, ans_train, pro_train, tag_que, tag_pro, 10)
-    
+    print('lda: topic model training')
+    lda_dic, lda_tfidf, lda_model = pipeline_lda(que_train, 10)
+
+    # extract and preprocess feature for all three main entities
+    print('processor: questions')
+    que_proc = QueProc(tag_embs, ques_d2v, lda_dic, lda_tfidf, lda_model)
+    que_data = que_proc.transform(que_train, tag_que)
