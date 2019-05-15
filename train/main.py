@@ -7,6 +7,8 @@ from utils.utils import TextProcessor
 from NLP.doc2vec import pipeline_d2v
 from NLP.lda import pipeline_lda
 from preprocessors.queproc import QueProc
+from preprocessors.stuproc import StuProc
+from preprocessors.proproc import ProProc
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
@@ -67,3 +69,11 @@ if __name__ == '__main__':
     print('processor: questions')
     que_proc = QueProc(tag_embs, ques_d2v, lda_dic, lda_tfidf, lda_model)
     que_data = que_proc.transform(que_train, tag_que)
+
+    print('processor: students')
+    stu_proc = StuProc()
+    stu_data = stu_proc.transform(stu_train, que_train, ans_train)
+
+    print('processor: professionals')
+    pro_proc = ProProc(tag_embs, ind_embs, head_d2v, ques_d2v)
+    pro_data = pro_proc.transform(pro_train, que_train, ans_train, tag_pro)
