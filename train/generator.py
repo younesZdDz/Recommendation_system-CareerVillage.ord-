@@ -69,3 +69,71 @@ class BatchGenerator(keras.utils.Sequence):
 
     def __len__(self):
         return len(self.pos_pairs) // self.batch_size
+
+    @staticmethod
+    def __find(feat_ar: np.ndarray, time_ar: np.ndarray, search_time):
+        pos = np.searchsorted(time_ar[1:], search_time)
+        assert time_ar[pos] is pd.NaT or time_ar[pos] < search_time
+        return feat_ar[pos]
+
+    def __convert(self, pairs: list) -> (np.ndarray, np.ndarray):
+        """
+        Convert list of pairs of ids to NumPy arrays
+        of question and professionals features
+        """
+        x_que, x_pro, current_times = [], [], []
+        for que, stu, pro, current_time in pairs:
+            que_data = self.que_feat[que]
+
+            # find student's and professional's feature at current time
+            stu_data = BatchGenerator.__find(self.stu_feat[stu], self.stu_time[stu], current_time)
+            pro_data = BatchGenerator.__find(self.pro_feat[pro], self.pro_time[pro], current_time)
+
+            # prepare current time as feature itself
+            current_time = current_time.year + (current_time.dayofyear + current_time.hour / 24) / 365
+            current_times.append(current_time)
+
+            x_que.append(np.hstack([stu_data, que_data]))
+            x_pro.append(pro_data)
+
+        # and append them to both questions and professionals
+        return np.vstack(x_que), np.vstack(x_pro)
+
+    def __getitem__(self, index):
+        """
+        Generate the batch
+        """
+        pos_pairs = self.pos_pairs[self.batch_size * index: self.batch_size * (index + 1)]
+        neg_pairs = []
+
+        for i in range(len(pos_pairs)):
+            while True:
+                # sample question, its student and time
+                que, stu, zero = random.choice(self.ques_stus_times)
+                # calculate shift between question's and current time
+                shift = np.random.exponential(BatchGenerator.exp_mean)
+                current_time = zero + pd.Timedelta(int(shift * 24 * 60), 'm')
+                # find number of professionals with registration date before current time
+                i = np.searchsorted(self.pros_times, current_time)
+                if i != 0:
+                    break
+
+            while True:
+                # sample professional for negative pair
+                pro = random.choice(self.pros[:i])
+                # check if he doesn't form a positive pair
+                if (que, stu, pro) not in self.nonneg_pairs:
+                    neg_pairs.append((que, stu, pro, current_time))
+                    break
+
+        # convert lists of pairs to NumPy arrays of features
+        x_pos_que, x_pos_pro = self.__convert(pos_pairs)
+        x_neg_que, x_neg_pro = self.__convert(neg_pairs)
+
+        # return the data in its final form
+        return [np.vstack([x_pos_que, x_neg_que]), np.vstack([x_pos_pro, x_neg_pro])], \
+               np.vstack([np.ones((len(x_pos_que), 1)), np.zeros((len(x_neg_que), 1))])
+
+    def on_epoch_end(self):
+        # shuffle positive pairs
+        self.pos_pairs = random.sample(self.pos_pairs, len(self.pos_pairs))
