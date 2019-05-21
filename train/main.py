@@ -9,6 +9,7 @@ from NLP.lda import pipeline_lda
 from preprocessors.queproc import QueProc
 from preprocessors.stuproc import StuProc
 from preprocessors.proproc import ProProc
+from train.generator import BatchGenerator
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
@@ -77,3 +78,25 @@ if __name__ == '__main__':
     print('processor: professionals')
     pro_proc = ProProc(tag_embs, ind_embs, head_d2v, ques_d2v)
     pro_data = pro_proc.transform(pro_train, que_train, ans_train, tag_pro)
+    # ##################################################################################################################
+    #
+    #                                                       INGESTION
+    #
+    # ##################################################################################################################
+
+    print('INGESTION')
+
+    # construct dataframe used to extract positive pairs
+    pairs_df = questions.merge(answers, left_on='questions_id', right_on='answers_question_id') \
+        .merge(professionals, left_on='answers_author_id', right_on='professionals_id') \
+        .merge(students, left_on='questions_author_id', right_on='students_id')
+
+    pairs_df = pairs_df[['questions_id', 'students_id', 'professionals_id', 'answers_date_added']]
+
+    # extract positive pairs
+    pos_pairs = list(pairs_df.loc[pairs_df['answers_date_added'] < SPLIT_DATE].itertuples(index=False, name=None))
+
+    # mappings from professional's id to his registration date. Used in batch generator
+    pro_to_date = {row['professionals_id']: row['professionals_date_joined'] for i, row in professionals.iterrows()}
+
+    bg = BatchGenerator(que_data, stu_data, pro_data, 64, pos_pairs, pos_pairs, pro_to_date)

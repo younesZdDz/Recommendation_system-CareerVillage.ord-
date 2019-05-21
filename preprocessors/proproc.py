@@ -3,7 +3,6 @@ import numpy as np
 
 from preprocessors.baseproc import BaseProc
 
-
 class ProProc(BaseProc):
     """
     Professionals data preprocessor
