@@ -10,6 +10,7 @@ from preprocessors.queproc import QueProc
 from preprocessors.stuproc import StuProc
 from preprocessors.proproc import ProProc
 from train.generator import BatchGenerator
+from models.distance import DistanceModel
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
@@ -100,3 +101,20 @@ if __name__ == '__main__':
     pro_to_date = {row['professionals_id']: row['professionals_date_joined'] for i, row in professionals.iterrows()}
 
     bg = BatchGenerator(que_data, stu_data, pro_data, 64, pos_pairs, pos_pairs, pro_to_date)
+
+    # ##################################################################################################################
+    #
+    #                                                       MODEL
+    #
+    # ##################################################################################################################
+    print('MODEL')
+    # in train mode, build, compile train and save model
+    model = DistanceModel(que_dim=len(que_data.columns) - 2 + len(stu_data.columns) - 2,
+                          que_input_embs=[102, 42], que_output_embs=[2, 2],
+                          pro_dim=len(pro_data.columns) - 2,
+                          pro_input_embs=[102, 102, 42], pro_output_embs=[2, 2, 2],
+                          inter_dim=20, output_dim=10)
+
+    for lr, epochs in zip([0.01, 0.001, 0.0001, 0.00001], [5, 10, 10, 5]):
+        model.compile(Adam(lr=lr), loss='binary_crossentropy', metrics=['accuracy'])
+        model.fit_generator(bg, epochs=epochs, verbose=2)
