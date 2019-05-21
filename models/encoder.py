@@ -3,6 +3,12 @@ from keras.models import Model
 from keras.layers import Input, Dense, Lambda, Embedding, Concatenate
 
 
+def l2_reg_last_n(alpha: float, n: int):
+    """
+    Adds L2 regularization on weights connected with the last n features with multiplier alpha
+    """
+    return lambda w: alpha * tf.reduce_mean(tf.square(w[-n:, :]))
+
 def categorize(inputs: tf.Tensor, emb_input_dims: list, emb_output_dims: list):
     """
     Replaces categorical features with trainable embeddings
@@ -54,7 +60,7 @@ class Encoder(Model):
 
         # here goes main dense layers
         self.inter = Dense(inter_dim, activation='tanh',
-                           kernel_regularizer=None)(self.categorized)
+                           kernel_regularizer=l2_reg_last_n(reg, 10))(self.categorized)
 
         self.outputs = Dense(output_dim)(self.inter)
 
