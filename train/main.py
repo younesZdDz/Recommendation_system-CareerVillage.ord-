@@ -1,21 +1,21 @@
-import os 
 import sys
-sys.path.extend(['..'])
-import pandas as pd
+import os 
+sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..') )
 
-from utils.utils import TextProcessor
+import pandas as pd
 from NLP.doc2vec import pipeline_d2v
 from NLP.lda import pipeline_lda
 from preprocessors.queproc import QueProc
 from preprocessors.stuproc import StuProc
 from preprocessors.proproc import ProProc
 from train.generator import BatchGenerator
-from models.distance import DistanceModel
+from models.distance import DistanceModel, Adam
+from utils.utils import TextProcessor
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
 
-DATA_PATH, SPLIT_DATE, DUMP_PATH = '../data/', '2019-01-01', '../dump/'
+DATA_PATH, SPLIT_DATE, DUMP_PATH = './data/', '2019-01-01', '../dump/'
 
 if __name__ == '__main__':
     
@@ -117,4 +117,4 @@ if __name__ == '__main__':
 
     for lr, epochs in zip([0.01, 0.001, 0.0001, 0.00001], [5, 10, 10, 5]):
         model.compile(Adam(lr=lr), loss='binary_crossentropy', metrics=['accuracy'])
-        model.fit_generator(bg, epochs=epochs, verbose=2)
+        model.fit_generator(bg    , epochs=epochs, verbose=2)
