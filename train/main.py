@@ -11,6 +11,8 @@ from preprocessors.proproc import ProProc
 from train.generator import BatchGenerator
 from models.distance import DistanceModel, Adam
 from utils.utils import TextProcessor
+from utils.importance import permutation_importance, plot_fi
+
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
@@ -118,3 +120,20 @@ if __name__ == '__main__':
     for lr, epochs in zip([0.01, 0.001, 0.0001, 0.00001], [5, 10, 10, 5]):
         model.compile(Adam(lr=lr), loss='binary_crossentropy', metrics=['accuracy'])
         model.fit_generator(bg    , epochs=epochs, verbose=2)
+
+    # ##################################################################################################################
+    #
+    #                                                   EVALUATION
+    #
+    # ##################################################################################################################
+    print('EVALUATION')
+    # dummy batch generator used to extract single big batch of data to calculate feature importance
+    bg = BatchGenerator(que_data, stu_data, pro_data, 1024, pos_pairs, pos_pairs, pro_to_date)
+
+    # dict with descriptions of feature names, used for visualization of feature importance
+    fn = {"que": list(stu_data.columns[2:]) + list(que_data.columns[2:]),
+          "pro": list(pro_data.columns[2:])}
+
+    # calculate and plot feature importance
+    fi = permutation_importance(model, bg[0][0][0], bg[0][0][1], bg[0][1], fn, n_trials=3)
+    plot_fi(fi)
