@@ -47,3 +47,31 @@ def permutation_importance(model: keras.models.Model, x_que: np.ndarray, x_pro: 
     fi['importance'] -= base_loss
 
     return fi
+
+
+def plot_fi(fi, title='Feature importances via shuffle', xlabel='Change in loss after shuffling feature\'s values'):
+    """
+    Nicely plot Pandas DataFrame with feature importance
+    """
+
+    def get_color(feature: str):
+        if feature.startswith('que'):
+            if '_emb_' in feature:
+                return 'b'
+            else:
+                return 'cornflowerblue'
+        elif feature.startswith('pro'):
+            if '_emb_' in feature:
+                return 'firebrick'
+            else:
+                return 'indianred'
+        else:
+            return 'g'
+
+    fi['color'] = fi.index.map(get_color)
+    fig, ax = plt.subplots(figsize=(8, 20))
+    plt.barh(fi.index, fi.importance, color=fi.color)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    ax.yaxis.tick_right()
+    plt.show()
