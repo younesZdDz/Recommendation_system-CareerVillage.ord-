@@ -2,6 +2,7 @@ import sys
 import os 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..') )
 
+import pickle
 import pandas as pd
 from NLP.doc2vec import pipeline_d2v
 from NLP.lda import pipeline_lda
@@ -17,7 +18,7 @@ from utils.importance import permutation_importance, plot_fi
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 pd.options.mode.chained_assignment = None
 
-DATA_PATH, SPLIT_DATE, DUMP_PATH = './data/', '2019-01-01', '../dump/'
+DATA_PATH, SPLIT_DATE, DUMP_PATH = './data/', '2019-01-01', './dump/'
 
 if __name__ == '__main__':
     
@@ -137,3 +138,70 @@ if __name__ == '__main__':
     # calculate and plot feature importance
     fi = permutation_importance(model, bg[0][0][0], bg[0][0][1], bg[0][1], fn, n_trials=3)
     plot_fi(fi)
+
+    # ##################################################################################################################
+    #
+    #                                                       TEST
+    #
+    # ##################################################################################################################
+    print('TEST')
+    # non-negative pairs are all known positive pairs to the moment
+    nonneg_pairs = pos_pairs
+
+    # extract positive pairs
+    pos_pairs = list(pairs_df.loc[pairs_df['answers_date_added'] >= SPLIT_DATE].itertuples(index=False, name=None))
+    nonneg_pairs += pos_pairs
+
+    # extract and preprocess feature for all three main entities
+
+    que_proc = QueProc(tag_embs, ques_d2v, lda_dic, lda_tfidf, lda_model)
+    que_data = que_proc.transform(questions, tag_que)
+
+    stu_proc = StuProc()
+    stu_data = stu_proc.transform(students, questions, answers)
+
+    pro_proc = ProProc(tag_embs, ind_embs, head_d2v, ques_d2v)
+    pro_data = pro_proc.transform(professionals, questions, answers, tag_pro)
+
+    # initialize batch generator
+    bg = BatchGenerator(que_data, stu_data, pro_data, 64, pos_pairs, nonneg_pairs, pro_to_date)
+
+    # ##################################################################################################################
+    #
+    #                                                   EVALUATION
+    #
+    # ##################################################################################################################
+
+    loss, acc = model.evaluate_generator(bg)
+    print(f'Loss: {loss}, accuracy: {acc}')
+
+    # dummy batch generator used to extract single big batch of data to calculate feature importance
+    bg = BatchGenerator(que_data, stu_data, pro_data, 1024, pos_pairs, nonneg_pairs, pro_to_date)
+
+    # dict with descriptions of feature names, used for visualization of feature importance
+    fn = {"que": list(stu_data.columns[2:]) + list(que_data.columns[2:]),
+          "pro": list(pro_data.columns[2:])}
+
+    # calculate and plot feature importance
+    fi = permutation_importance(model, bg[0][0][0], bg[0][0][1], bg[0][1], fn, n_trials=3)
+    plot_fi(fi)
+
+    # mappings from question's id to its author id. Used in Predictor
+    que_to_stu = {row['questions_id']: row['questions_author_id'] for i, row in questions.iterrows()}
+
+    # ##################################################################################################################
+    #
+    #                                                       SAVE
+    #
+    # ##################################################################################################################
+
+    d = {'que_data': que_data,
+         'stu_data': stu_data,
+         'pro_data': pro_data,
+         'que_proc': que_proc,
+         'pro_proc': pro_proc,
+         'que_to_stu': que_to_stu,
+         'pos_pairs': pos_pairs}
+    with open(os.path.join(DUMP_PATH, 'dump.pkl'), 'wb') as file:
+        pickle.dump(d, file)
+    model.save_weights(os.path.join(DUMP_PATH, 'model.h5'))
