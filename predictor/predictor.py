@@ -163,3 +163,15 @@ class Predictor:
         """
         lat_vecs = self.__get_que_latent(que_df, que_tags)
         return self.__get_pros_by_latent(que_df['questions_id'].values, lat_vecs, top)
+
+    def find_ques_by_que(self, que_df: pd.DataFrame, que_tags: pd.DataFrame, top: int = 10) -> pd.DataFrame:
+        """
+        Get top questions with most similar internal representation to given questions
+
+        :param que_df: question's data in raw format
+        :param que_tags: questions's tags in raw format
+        :param top: number of questions for each question to return
+        :return: dataframe of question's ids, matched question's ids and similarity scores
+        """
+        lat_vecs = self.__get_que_latent(que_df, que_tags)
+        return self.__get_ques_by_latent(que_df['questions_id'].values, lat_vecs, top)
