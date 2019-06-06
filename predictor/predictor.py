@@ -86,4 +86,68 @@ class Predictor:
         self.que_proc = que_proc
         self.pro_proc = pro_proc
 
-   
+    def __get_que_latent(self, que_df: pd.DataFrame, que_tags: pd.DataFrame) -> np.ndarray:
+        """
+        Get latent vectors for questions in raw format
+        """
+        que_df['questions_date_added'] = pd.to_datetime(que_df['questions_date_added'])
+
+        # extract and preprocess question's features
+        que_feat = self.que_proc.transform(que_df, que_tags).values[:, 2:]
+
+        # actual question's features are both question and student's features
+        stu_feat = np.vstack([self.stu_dict[stu] for stu in que_df['questions_author_id']])
+        que_feat = np.hstack([stu_feat, que_feat])
+
+        # encode question's data to get latent representation
+        lat_vecs = self.que_model.predict(que_feat)
+
+        return lat_vecs
+
+    def __get_pro_latent(self, pro_df: pd.DataFrame, que_df: pd.DataFrame, ans_df: pd.DataFrame,
+                         pro_tags: pd.DataFrame) -> np.ndarray:
+        """
+        Get latent vectors for professionals in raw format
+        """
+        pro_df['professionals_date_joined'] = pd.to_datetime(pro_df['professionals_date_joined'])
+        que_df['questions_date_added'] = pd.to_datetime(que_df['questions_date_added'])
+        ans_df['answers_date_added'] = pd.to_datetime(ans_df['answers_date_added'])
+
+        # extract and preprocess professional's features
+        pro_feat = self.pro_proc.transform(pro_df, que_df, ans_df, pro_tags)
+
+        # select the last available version of professional's features
+        pro_feat = pro_feat.groupby('professionals_id').last().values[:, 1:]
+
+        # encode professional's data to get latent representation
+        lat_vecs = self.pro_model.predict(pro_feat)
+
+        return lat_vecs
+
+    def __construct_df(self, ids, sims, scores):
+        scores = np.round(scores, 4)
+        tuples = []
+        for i, cur_id in enumerate(ids):
+            for j, sim in enumerate(sims[i]):
+                if sim[0] not in self.entity_to_paired.get(cur_id, {}):
+                    tuples.append((cur_id, sim[0], scores[i, j]))
+        score_df = pd.DataFrame(tuples, columns=['id', 'match_id', 'match_score'])
+        return score_df
+
+    def __get_ques_by_latent(self, ids: np.ndarray, lat_vecs: np.ndarray, top: int) -> pd.DataFrame:
+        """
+        Get top questions with most similar latent representations to given vectors
+        """
+        dists, ques = self.que_tree.query(lat_vecs, k=top)
+        ques = self.que_ids[ques]
+        scores = np.exp(-dists)
+        return self.__construct_df(ids, ques, scores)
+
+    def __get_pros_by_latent(self, ids: np.ndarray, lat_vecs: np.ndarray, top: int) -> pd.DataFrame:
+        """
+        Get top professionals with most similar latent representations to given vectors
+        """
+        dists, pros = self.pro_tree.query(lat_vecs, k=top)
+        pros = self.pro_ids[pros]
+        scores = np.exp(-dists)
+        return self.__construct_df(ids, pros, scores)
