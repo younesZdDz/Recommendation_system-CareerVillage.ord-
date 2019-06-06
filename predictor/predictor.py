@@ -190,3 +190,19 @@ class Predictor:
         """
         lat_vecs = self.__get_pro_latent(pro_df, que_df, ans_df, pro_tags)
         return self.__get_ques_by_latent(pro_df['professionals_id'].values, lat_vecs, top)
+
+
+    def find_pros_by_pro(self, pro_df: pd.DataFrame, que_df: pd.DataFrame, ans_df: pd.DataFrame,
+                         pro_tags: pd.DataFrame, top: int = 10) -> pd.DataFrame:
+        """
+        Get top professionals with most similar internal representation to given professional
+
+        :param pro_df: professional's data in raw format
+        :param que_df: question's data in raw format
+        :param ans_df: answer's data in raw format
+        :param pro_tags: professional's tags data in raw format
+        :param top: number of questions for each professional to return
+        :return: dataframe of professional's ids, matched professional's ids and similarity scores
+        """
+        lat_vecs = self.__get_pro_latent(pro_df, que_df, ans_df, pro_tags)
+        return self.__get_pros_by_latent(pro_df['professionals_id'].values, lat_vecs, top)
