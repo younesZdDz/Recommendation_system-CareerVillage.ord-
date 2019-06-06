@@ -206,3 +206,102 @@ class Predictor:
         """
         lat_vecs = self.__get_pro_latent(pro_df, que_df, ans_df, pro_tags)
         return self.__get_pros_by_latent(pro_df['professionals_id'].values, lat_vecs, top)
+
+
+
+class Formatter:
+    """
+    Class with useful for Predictor input/output functionality
+    """
+
+    def __init__(self, data_path: str):
+        pro = pd.read_csv(os.path.join(data_path, 'professionals.csv'))
+        que = pd.read_csv(os.path.join(data_path, 'questions.csv'))
+
+        tags = pd.read_csv(os.path.join(data_path, 'tags.csv'))
+        tag_users = pd.read_csv(os.path.join(data_path, 'tag_users.csv'))
+        tag_que = pd.read_csv(os.path.join(data_path, 'tag_questions.csv'))
+
+        tag_merged = tags.merge(tag_users, left_on='tags_tag_id', right_on='tag_users_tag_id')
+        tags_grouped = tag_merged.groupby('tag_users_user_id').agg(lambda x: ' '.join(x))[['tags_tag_name']]
+        self.pro = pro.merge(tags_grouped, left_on='professionals_id', right_index=True, how='left')
+
+        tag_merged = tags.merge(tag_que, left_on='tags_tag_id', right_on='tag_questions_tag_id')
+        tags_grouped = tag_merged.groupby('tag_questions_question_id').agg(lambda x: ' '.join(x))[['tags_tag_name']]
+        self.que = que.merge(tags_grouped, left_on='questions_id', right_index=True, how='left')
+
+    def get_que(self, scores: pd.DataFrame) -> pd.DataFrame:
+        """
+        Append all the question's data to question's scoring dataframe from Predictor
+
+        :param scores: result of similar questions query on Predictor object
+        :return: extended dataframe
+        """
+        return self.que.merge(scores, left_on='questions_id', right_on='match_id').sort_values('match_score',
+                                                                                               ascending=False)
+
+    def get_pro(self, scores: pd.DataFrame) -> pd.DataFrame:
+        """
+        Append all the professional's data to professional's scoring dataframe from Predictor
+
+        :param scores: result of similar professionals query on Predictor object
+        :return: extended dataframe
+        """
+        return self.pro.merge(scores, left_on='professionals_id', right_on='match_id').sort_values('match_score',
+                                                                                                   ascending=False)
+
+    @staticmethod
+    def __convert_tuples(ids, tags):
+        tuples = []
+        for i, tgs in enumerate(tags):
+            que = ids[i]
+            for tag in tgs.split(' '):
+                tuples.append((que, tag))
+        return tuples
+
+    @staticmethod
+    def convert_que_dict(que_dict: dict) -> (pd.DataFrame, pd.DataFrame):
+        """
+        Converts dictionary of question data into desired form
+        :param que_dict: dictionary of question data
+        """
+        # get DataFrame from dict
+        que_df = pd.DataFrame.from_dict(que_dict)
+
+        # create question-tag tuples
+        tuples = Formatter.__convert_tuples(que_df['questions_id'].values, que_df['questions_tags'].values)
+
+        # create DataFrame from tuples
+        que_tags = pd.DataFrame(tuples, columns=['tag_questions_question_id', 'tags_tag_name'])
+        que_df.drop(columns='questions_tags', inplace=True)
+
+        que_tags['tags_tag_name'] = que_tags['tags_tag_name'].apply(lambda x: tp.process(x, allow_stopwords=True))
+        que_df['questions_title'] = que_df['questions_title'].apply(tp.process)
+        que_df['questions_body'] = que_df['questions_body'].apply(tp.process)
+        que_df['questions_whole'] = que_df['questions_title'] + ' ' + que_df['questions_body']
+
+        return que_df, que_tags
+
+    @staticmethod
+    def convert_pro_dict(pro_dict: dict) -> (pd.DataFrame, pd.DataFrame):
+        """
+        Converts dictionary of professional data into desired form
+        :param pro_dict: dictionary of professional data
+        """
+        # get DataFrame from dict
+        pro_df = pd.DataFrame.from_dict(pro_dict)
+        pros = pro_df['professionals_id'].values
+
+        # create professional-tag tuples
+        tuples = Formatter.__convert_tuples(pro_df['professionals_id'].values,
+                                            pro_df['professionals_subscribed_tags'].values)
+
+        # create DataFrame from tuples
+        pro_tags = pd.DataFrame(tuples, columns=['tag_users_user_id', 'tags_tag_name'])
+        pro_df.drop(columns='professionals_subscribed_tags', inplace=True)
+
+        pro_tags['tags_tag_name'] = pro_tags['tags_tag_name'].apply(lambda x: tp.process(x, allow_stopwords=True))
+        pro_df['professionals_headline'] = pro_df['professionals_headline'].apply(tp.process)
+        pro_df['professionals_industry'] = pro_df['professionals_industry'].apply(tp.process)
+
+        return pro_df, pro_tags
