@@ -151,3 +151,15 @@ class Predictor:
         pros = self.pro_ids[pros]
         scores = np.exp(-dists)
         return self.__construct_df(ids, pros, scores)
+
+    def find_pros_by_que(self, que_df: pd.DataFrame, que_tags: pd.DataFrame, top: int = 10) -> pd.DataFrame:
+        """
+        Get top professionals with most similar internal representation to given questions
+
+        :param que_df: question's data in raw format
+        :param que_tags: questions's tags in raw format
+        :param top: number of professionals for each question to return
+        :return: dataframe of question's ids, matched professional's ids and similarity scores
+        """
+        lat_vecs = self.__get_que_latent(que_df, que_tags)
+        return self.__get_pros_by_latent(que_df['questions_id'].values, lat_vecs, top)
