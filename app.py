@@ -73,7 +73,7 @@ pred = Predictor(model, que_data, stu_data, pro_data, que_proc, pro_proc, que_to
 formatter = Formatter(DATA_PATH)
 
 # init flask server
-app = Flask(__name__, static_url_path='', template_folder='views')
+app = Flask(__name__, static_url_path='', template_folder='view')
 CORS(app) 
 
 # Routes
