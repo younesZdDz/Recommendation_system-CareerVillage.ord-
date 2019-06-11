@@ -111,5 +111,47 @@ def question():
 
 
 
+@app.route("/api/professional", methods = ['POST'])
+def professional():
+  try:
+    pro_dict = {
+        'professionals_id': [],
+        'professionals_location': [],
+        'professionals_industry': [],
+        'professionals_headline': [],
+        'professionals_date_joined': [],
+        'professionals_subscribed_tags': []
+      }
+
+    data = request.get_json()
+
+    pro = professionals_sample[professionals_sample['professionals_id'] == data['professionals_id']]
+    pro = pro.to_dict('records')[0]
+
+    tag = pro_tags_sample[pro_tags_sample['tag_users_user_id'] == data['professionals_id']]
+
+    for key, val in pro.items():
+        if key in pro_dict and val:
+          pro_dict[key].append(str(val))
+    
+    pro_dict['professionals_subscribed_tags'].append(' '.join(list(tag['tags_tag_name'])))    
+    
+    for key, val in pro_dict.items():
+      if not val:
+         return json.dumps([], default=str)
+    
+    pro_df, pro_tags = Formatter.convert_pro_dict(pro_dict)
+    tmp = pred.find_ques_by_pro(pro_df, questions, answers, pro_tags)
+    final_df = formatter.get_que(tmp).fillna('')
+    
+    final_data = final_df.to_dict('records')
+    
+    return json.dumps(final_data, allow_nan=False) 
+      
+  except Exception as e:
+    return json.dumps([], default=str)
+
+    
+
 if __name__ == '__main__':
   app.run(debug=False, host='0.0.0.0', port = 8000)
