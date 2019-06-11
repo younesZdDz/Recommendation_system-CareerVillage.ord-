@@ -1,0 +1,336 @@
+<html>
+<head>
+    <title>Data Science for Good: CareerVillage.org | Kaggle Demo</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js" integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+   
+
+    <style type="text/css">
+        * {
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            width: 256px;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .tab_active {
+            border-bottom: 2px solid black;
+        }
+
+        .disabledTab{
+            pointer-events: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            width: 256px;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 32px;
+            margin-top: 8px;
+            border: 1px solid black;
+        }
+
+        table, tr {
+            font-size: 12px !important;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2
+        }
+
+        th, td {
+            padding: 4px 12px;
+            font-size: inherit;
+        }
+
+        select, input, textarea {
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+    </style>
+</head>
+
+<body style="margin: 32px;">
+<h2 style="font-size: 24px;">Kaggle Demo</h2>
+<h3 style="font-size: 20px;"><a href="https://www.kaggle.com/c/data-science-for-good-careervillage">Data Science for Good: CareerVillage.org</a></h3>
+<h4 style="font-size: 18px;">Live Demo with NN based fast similarity search</h3>
+<h5 style="font-size: 14px;">Proposed method takes into account all the possible content features using custom Neural Network Architecture. <br> Allows automatically find a probability mapping between question and professional entities in all of the combinations (que-que, que-pro, pro-que, pro-pro)</h4>
+
+<div style="display: flex;">
+    <div id="questions_tab" class="tab tab_active">
+        Question
+    </div>
+    <div id="professionals_tab" class="tab" >
+        Professional
+    </div>
+</div>
+<div id="questions_content" class="content show">
+    <div style="margin-bottom: 20px;"><b>Finds similar questions to given student and question</b></div>
+    <div style="display: flex;">
+        <form id="questions_form" style="display: block; min-width: 320px;">
+            <label>Student selector <b style="color: red;">*</b></label>
+            <select name="questions_author_id" style="display: block">
+                <option value="9658267bc2564a85bad1e802de5fb597">Id: 9658267bc2564a85bad1e802de5fb597; Location: Wayne, Pennsylvania</option>
+                <option value="d49795757f274dd690bdce3936edea20">Id: d49795757f274dd690bdce3936edea20; Location: New York, New York</option>
+                <option value="fae3c431698a418882c4204e5f3ee244">Id: fae3c431698a418882c4204e5f3ee244; Location: Lakewood, Ohio</option>
+                <option value="2e67080928c74a4d863b2bcc60921152">Id: 2e67080928c74a4d863b2bcc60921152; Location: London, Ontario, Canada</option>
+                <option value="94f41c4228e2452aa8ddf786d02b06c0">Id: 94f41c4228e2452aa8ddf786d02b06c0; Location: Burlingame, California</option>
+                <option value="da1239a179894367a43dfa56c8ef6515">Id: da1239a179894367a43dfa56c8ef6515; Location: San Francisco, California</option>
+                <option value="b3e4125677e84e77922a562686d8e161">Id: b3e4125677e84e77922a562686d8e161; Location: Tempe, Arizona     </option>
+                <option value="8cd865a6e8ce41d39095bc79340ab352">Id: 8cd865a6e8ce41d39095bc79340ab352; Location: Boston, Massachusetts</option>
+                <option value="16908136951a48ed942738822cedd5c2">Id: 16908136951a48ed942738822cedd5c2; Location: Palm Harbor, Florida</option>
+                <option value="3e7ab25364e14e369cac8e60c5b84eb4">Id: 3e7ab25364e14e369cac8e60c5b84eb4; Location: Baton Rouge, Louisiana</option>
+                <option value="ebe2c3954f9b4a97a75c32c63b485315">Id: ebe2c3954f9b4a97a75c32c63b485315; Location: Sunnyvale, California</option>
+                <option value="352562f7c1694a46a671ddea405cfdb5">Id: 352562f7c1694a46a671ddea405cfdb5; Location: Worcester, Massachusetts</option>
+                <option value="3c41b1dd7a1e4fe4be98f5a069c30e75">Id: 3c41b1dd7a1e4fe4be98f5a069c30e75; Location: Irvine, California</option>
+                <option value="6daa936b2b97464bbe940bf60f433162">Id: 6daa936b2b97464bbe940bf60f433162; Location: United States</option>
+                <option value="06286e6a98a14dd086d16e1221368061">Id: 06286e6a98a14dd086d16e1221368061; Location: Burlingame, California</option>
+                <option value="f23462c02b26443faee641350a1a3963">Id: f23462c02b26443faee641350a1a3963; Location: Hinesville, Georgia</option>
+                <option value="a004fd67683e45ec84e17c552e306031">Id: a004fd67683e45ec84e17c552e306031; Location: Katy, Texas</option>
+                <option value="d78a186ccc4d473384ebf02fda4a36c2">Id: d78a186ccc4d473384ebf02fda4a36c2; Location: Phoenix, Arizona</option>
+                <option value="4485f41169424f70801b099b55a2a5fe">Id: 4485f41169424f70801b099b55a2a5fe; Location: Mountain View, California</option>
+                <option value="d91061e16e0a48c4946413ea7669a89d">Id: d91061e16e0a48c4946413ea7669a89d; Location: Boston, Massachusetts</option>
+                <option value="ef9ceabc38d84830a254c171d446dee0">Id: ef9ceabc38d84830a254c171d446dee0; Location: Boston, Massachusetts</option>
+                <option value="474ed8eeb4b04a2db5f7a3eac6111324">Id: 474ed8eeb4b04a2db5f7a3eac6111324; Location: United States</option>
+                <option value="177f482adc1a449284471f7c556ee8f0">Id: 177f482adc1a449284471f7c556ee8f0; Location: United States</option>
+                <option value="b712ae1a97914821ba6294210043a7f2">Id: b712ae1a97914821ba6294210043a7f2; Location: Burlingame, California</option>
+                <option value="64346a0c5a9e44b0a8c1afd6c9fff4ab">Id: 64346a0c5a9e44b0a8c1afd6c9fff4ab; Location: Greeley, Pennsylvania</option>
+                <option value="687645c9f45a4fd09e0313bf16bcb932">Id: 687645c9f45a4fd09e0313bf16bcb932; Location: Dearborn, Michigan</option>
+                <option value="622c0696372b4760b8182db229d082ab">Id: 622c0696372b4760b8182db229d082ab; Location: Montevideo, Montevideo Department, Uruguay</option>
+                <option value="3686d9f5bcfb4755aeccc9a66cbae8f4">Id: 3686d9f5bcfb4755aeccc9a66cbae8f4; Location: Cambridge, Massachusetts   </option>
+                <option value="3fa52f2ad0074d9aa11d5511fdd2b2d8">Id: 3fa52f2ad0074d9aa11d5511fdd2b2d8; Location: Oakland, California</option>
+                <option value="92a0a4d615184c01b07684be329f9228">Id: 92a0a4d615184c01b07684be329f9228; Location: Tucson, Arizona</option>
+            </select>
+            <br>
+
+            <label>Question Title <b style="color: red;">*</b></label>
+            <input name="questions_title" style="display: block" placeholder="Study Law">
+            <br>
+
+            <label>Question Body <b style="color: red;">*</b></label>
+            <textarea name="questions_body" rows="6" style="display: block" placeholder="I want to study law but not sure what subjects need to be taken, so need some advice on that."></textarea>
+            <br>
+
+            <label>Question Tags <b style="color: red;">*</b></label>
+            <input name="questions_tags" style="display: block" placeholder="law justice judge">
+            <br>
+
+            <!--<button type="submit">Submit</button>-->
+            <button type="reset">Clear</button>
+        </form>
+
+        <div style="display: block; margin-left: 32px;">
+            <div id="questions_empty" style="display: flex; align-items: center; justify-content: center; width: 320px;"
+                 class="show">
+                Please, fill form and submit it
+            </div>
+
+            <table id="questions_table" style="display: block; word-break: break-all;" class="hide">
+                <thead>
+                <tr>
+                    <th style="width: 10%">score</th>
+                    <th style="width: 20%">title</th>
+                    <th style="width: 20%">body</th>
+                    <th style="width: 10%">tags</th>
+                    <th style="width: 10%">date</th>
+                    <th style="width: 10%">question_id</th>
+                    <th style="width: 10%">author_id</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="professionals_content" class="content hide">
+    <div style="margin-bottom: 20px;"><b>Finds relevant questions for professional to answer</b></div>
+    <div style="display: flex;">
+        <form id="professionals_form" style="display: block; min-width: 320px;">
+            <label>Professional Selector <b style="color: red;">*</b></label>
+            <select name="professionals_id" style="display: block">
+                <option value="f783d3387a60435ea6f2444fb62325dc">Id: f783d3387a60435ea6f2444fb62325dc, location: Lancaster, England, United Kingdom; <br>industry: Environmental Services; headline: Researcher at Lancaster University</option>
+                <option value="76ebb07543af458f8c3a9a502286f4ef">Id: 76ebb07543af458f8c3a9a502286f4ef; location: North Carolina, North Carolina; industry: Real Estate; headline: Regional Vice President - PRG Real Estate Manager</option>
+                <option value="350a7fe2bdf34216b1496ac13a00649e">Id: 350a7fe2bdf34216b1496ac13a00649e; location: Jacksonville, Florida; industry: Computer Games; headline: Senior Software Engineer at Zynga Sports 365</option>
+                <option value="cebebfc280f14eb69a9cb8eb939822f7">Id: cebebfc280f14eb69a9cb8eb939822f7; location: Chennai, Tamil Nadu, India; industry: Mechanical or Industrial Engineering; headline: mechanical engineer</option>
+                <option value="8cb2676d389f4317a20709eb8426c2c2">Id: 8cb2676d389f4317a20709eb8426c2c2; location: Oakland, California; industry: Security and Investigations; headline: Federal Protective Security</option>
+                <option value="6c7b20179cde493a8e6be5c93f8b3535">Id: 6c7b20179cde493a8e6be5c93f8b3535; location: Dallas, Texas; industry: Animation; headline: Visual Effects & Animation</option>
+                <option value="4fc7f10cc9094109a24f83d7c2ad932f">Id: 4fc7f10cc9094109a24f83d7c2ad932f; location: Egypt; industry: Chemicals; headline: chemical engineer</option>
+                <option value="04edc40ea7c240a8bfaaa19394e1f47a">Id: 04edc40ea7c240a8bfaaa19394e1f47a; location: Langhorne, Pennsylvania; industry: Mental Health Care; headline: Quality Assurance Coordinator at New Jersey</option>
+                <option value="d922b841ceb545d7b5ce7bb066ef96ec">Id: d922b841ceb545d7b5ce7bb066ef96ec; location: Coppell, Texas; industry: Computer and Tabletop Games; headline: Game Designer and Educator</option>
+                <option value="34e6995ff9cc41ac853af7da4c15cfce">Id: 34e6995ff9cc41ac853af7da4c15cfce; location: San Antonio, Texas; industry: Airlines/Aviation; headline: Proprietor at Julicher Aviation</option>
+                <option value="5ca6a4d5d6d047e0a264a7c540e7fee2">Id: 5ca6a4d5d6d047e0a264a7c540e7fee2; location: Chicago, Illinois; industry: Music; headline: Audio Engineer | Music Producer</option>
+                <option value="e2881beb96334dcba8fa3c7feeafe928">Id: e2881beb96334dcba8fa3c7feeafe928; location: New York, New York; industry: Mechanical or Industrial Engineering; headline: Co Owner at SB Royal</option>
+                <option value="873a4b08d4434f088a4d1f4b9654af4d">Id: 873a4b08d4434f088a4d1f4b9654af4d; location: Humble, Texas; industry: Information Technology and Services; headline: IT Support Extraordinaire</option>
+                <option value="1db1485cc8c74b0291505e92237b98d0">Id: 1db1485cc8c74b0291505e92237b98d0; location: New York, New York; industry: Hospital and Health Care; headline: Physical Therapist</option>
+                <option value="bf61b9f8b7b3476880011855411f529d">Id: bf61b9f8b7b3476880011855411f529d; location: Los Angeles, California; industry: Broadcast Media; headline: Producer at The Upright Citizens Brigade Theatre</option>
+                <option value="8e4c7a994e4e41a8869c58c7d22a6ae6">Id: 8e4c7a994e4e41a8869c58c7d22a6ae6; industry: Telecommunications</option>
+                <option value="b0d3d3269786402c9904338d5494492a">Id: b0d3d3269786402c9904338d5494492a; location: California, California; industry: Computer Software; headline: Actively Seeking Full Time Opportunities</option>
+                <option value="180a00a269c7476095938fa1d59f9b34">Id: 180a00a269c7476095938fa1d59f9b34; location: Greece; industry: Education Management; headline: teacher</option>
+                <option value="6d5c91cdb89c4bb3987d9524b1369179">Id: 6d5c91cdb89c4bb3987d9524b1369179; location: Herndon, Virginia  ; industry: Public Relations; headline: Senior Communications Specialist</option>
+                <option value="26d8ea280c7b451798968fb6b5ebb83a">Id: 26d8ea280c7b451798968fb6b5ebb83a; location: Santa Cruz, California; industry: Research; headline: Wildlife Ecologist</option>
+                <option value="012de91c57f741d49f9feb67bb242b7d">Id: 012de91c57f741d49f9feb67bb242b7d; location: Greater Pittsburgh Area; industry: Writing and Editing; headline: Creative Writer~Copy, Content, Poetry, Word</option>
+                <option value="1cf674f780184abbbafba79a7d38ca36">Id: 1cf674f780184abbbafba79a7d38ca36; location: Ithaca, New York Area; industry: Higher Education; headline: Graduate Research Assistant at Binghamton University</option>
+                <option value="176d5aeeef1546cd962fb2375eeec7c5">Id: 176d5aeeef1546cd962fb2375eeec7c5; location: Phoenix, Arizona Area; industry: Financial Services; headline: Trust Officer at FineMark Bank</option>
+                <option value="5c2242b9b4bf4e48982823f454fbd00d">Id: 5c2242b9b4bf4e48982823f454fbd00d; location: Westbury, New York; industry: Medical Practice; headline: Orthodontics at All About Smiles Dentistry,PLLC</option>
+                <option value="9eab96bba1ad4c9fa241e0ab2916e4f6">Id: 9eab96bba1ad4c9fa241e0ab2916e4f6; location: Kitchener, Canada Area; industry: Accounting; headline: Senior Associate, Assurance at PwC</option>
+                <option value="93cc0b14523b4f69bd3b2e44bef36d30">Id: 93cc0b14523b4f69bd3b2e44bef36d30; location: San Jose, California; industry: Banking; headline: Manager, Product Communications & Training  </option>
+                <option value="1ad13abd75b641198468b121e83e8706">Id: 1ad13abd75b641198468b121e83e8706; location: San Francisco Bay Area; industry: Design; headline: Graphic Designer based in San Francisco</option>
+                <option value="db993ff4b1204dd08349944e2ca2ad2a">Id: db993ff4b1204dd08349944e2ca2ad2a; location: Tampa/St. Petersburg, Florida Area; industry: Oil and Energy; headline: Technical Superintendent at Pacific Drilling</option>
+                <option value="5decbeed59da48479805466a45c0c41e">Id: 5decbeed59da48479805466a45c0c41e; location: Greater New York City Area; industry: Biotechnology; headline: Graduate from Stony Brook University</option>
+                <option value="c946d53a8efe48dca1f6cc2360bbfa36">Id: c946d53a8efe48dca1f6cc2360bbfa36; location: San Francisco Bay Area; industry: International Trade and Development; headline: International Business Professional</option>
+
+            </select>
+            <br>
+
+            <button type="submit">Submit</button>
+            <button type="reset">Clear</button>
+        </form>
+
+        <div style="display: block; margin-left: 32px;">
+            <div id="professionals_empty"
+                 style="display: flex; align-items: center; justify-content: center; width: 320px;"
+                 class="show">
+                Please, fill form and submit it
+            </div>
+
+            <table id="professionals_table" style="display: block; word-break: break-all;" class="hide">
+                <thead>
+                <tr>
+                    <th style="width: 10%">score</th>
+                    <th style="width: 20%">title</th>
+                    <th style="width: 20%">body</th>
+                    <th style="width: 10%">tags</th>
+                    <th style="width: 10%">date</th>
+                    <th style="width: 10%">question_id</th>
+                    <th style="width: 10%">author_id</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div><i>by <a href="https://linkedin.com/in/younes-zadi/">Younes Zadi</a></i></div>
+</body>
+
+<script>
+    var apiPath = "/api"
+
+    $.fn.serializeObject = function () {
+        var o = {};
+        var a = this.serializeArray();
+
+        $.each(a, function () {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return o;
+    };
+
+    $("#questions_tab").on('click', function (e) {
+        $(this).addClass("tab_active")
+        $("#professionals_tab").removeClass("tab_active")
+        $("#questions_content").addClass("show").removeClass("hide")
+        $("#professionals_content").addClass("hide").removeClass("show")
+    })
+
+    $("#professionals_tab").on('click', function (e) {
+        $(this).addClass("tab_active")
+        $("#questions_tab").removeClass("tab_active")
+        $("#professionals_content").addClass("show").removeClass("hide")
+        $("#questions_content").addClass("hide").removeClass("show")
+    })
+
+    $("#questions_form").on('input', function (e) {
+        e.preventDefault();
+        var data = $(this).serializeObject()
+
+        $.ajax({
+            url: apiPath + '/question',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                console.log("ok")
+                console.log(data)
+
+                $("#questions_empty").addClass("hide").removeClass("show")
+                $("#questions_table").addClass("show").removeClass("hide")
+
+                $("#questions_table>tbody").empty();
+
+                $.each(data, function () {
+                    $("#questions_table>tbody").append('<tr><td><b>' + this.match_score + '</b></td><td>' + this.questions_title + '</td><td>' + this.questions_body + '</td><td>' + this.tags_tag_name + '</td><td>' + this.questions_date_added + '</td><td>' + this.questions_id + '</td><td>' + this.questions_author_id + '</td></tr>')
+                })
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+    }).on('reset', function (e) {
+        console.log("clear")
+        $("#questions_table").addClass("hide").removeClass("show")
+        $("#questions_empty").addClass("show").removeClass("hide")
+    })
+
+    $("#professionals_form").on('input, submit', function (e) {
+        e.preventDefault();
+        var data = $(this).serializeObject()
+
+        $.ajax({
+            url: apiPath + '/professional',
+            type: 'POST',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(data),
+            success: function (data) {
+                console.log("ok")
+                console.log(data)
+
+                $("#professionals_empty").addClass("hide").removeClass("show")
+                $("#professionals_table").addClass("show").removeClass("hide")
+
+                $("#professionals_table>tbody").empty();
+
+                $.each(data, function () {
+                    $("#professionals_table>tbody").append('<tr><td><b>' + this.match_score + '</b></td><td>' + this.questions_title + '</td><td>' + this.questions_body + '</td><td>' + this.tags_tag_name + '</td><td>' + this.questions_date_added + '</td><td>' + this.questions_id + '</td><td>' + this.questions_author_id + '</td></tr>')
+                })
+            }
+        });
+    }).on('reset', function (e) {
+        console.log("clear")
+        $("#professionals_table").addClass("hide").removeClass("show")
+        $("#professionals_empty").addClass("show").removeClass("hide")
+    })
+</script>
+</html>
