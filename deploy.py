@@ -2,6 +2,9 @@ import sys
 import os 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..') )
 
+import nltk
+nltk.download('stopwords')
+
 from flask_cors import CORS
 from flask import request
 from flask import Flask, Response
