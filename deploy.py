@@ -5,9 +5,8 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), '..') 
 import nltk
 nltk.download('stopwords')
 
-from flask_cors import CORS
 from flask import request
-from flask import Flask, Response
+from flask import Flask
 from flask import render_template
 
 import json
@@ -77,7 +76,6 @@ formatter = Formatter(DATA_PATH)
 
 # init flask server
 app = Flask(__name__, static_url_path='', template_folder='view')
-CORS(app) 
 
 # Routes
 
