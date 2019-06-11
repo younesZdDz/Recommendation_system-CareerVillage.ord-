@@ -19,6 +19,8 @@ from models.distance import DistanceModel
 from predictor.predictor import Predictor, Formatter
 from preprocessors.queproc import QueProc
 from preprocessors.proproc import ProProc
+import traceback
+
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 
@@ -107,6 +109,7 @@ def question():
       return json.dumps(final_data, allow_nan=False) 
 
     except Exception as e:
+      traceback.print_exc()
       return json.dumps([], default=str)
 
 
@@ -137,7 +140,7 @@ def professional():
     pro_dict['professionals_subscribed_tags'].append(' '.join(list(tag['tags_tag_name'])))    
     
     for key, val in pro_dict.items():
-      if not val:
+      if not val:          
          return json.dumps([], default=str)
     
     pro_df, pro_tags = Formatter.convert_pro_dict(pro_dict)
@@ -149,9 +152,10 @@ def professional():
     return json.dumps(final_data, allow_nan=False) 
       
   except Exception as e:
+    traceback.print_exc()
     return json.dumps([], default=str)
 
-    
+
 
 if __name__ == '__main__':
   app.run(debug=False, host='0.0.0.0', port = 8000)
