@@ -1,1 +1,1 @@
-web: gunicorn deploy:app --timeout 160 --preload
+web: gunicorn deploy:app --timeout 260 --preload
