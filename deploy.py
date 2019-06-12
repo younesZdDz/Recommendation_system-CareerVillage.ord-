@@ -47,6 +47,49 @@ def index():
 
 @app.route("/api/question", methods = ['POST'])
 def question():
+    
+   # init model
+    model = DistanceModel(que_dim= 34 - 2 + 8 - 2,
+                                  que_input_embs=[102, 42], que_output_embs=[2, 2],
+                                  pro_dim=42 - 2,
+                                  pro_input_embs=[102, 102, 42], pro_output_embs=[2, 2, 2],
+                                  inter_dim=20, output_dim=10)
+    # load weights
+    model.load_weights(os.path.join(DUMP_PATH, 'model.h5'))
+
+    # load dumped data
+    with open(os.path.join(DUMP_PATH, 'dump.pkl'), 'rb') as file:
+        d = pickle.load(file)
+        que_data = d['que_data']
+        stu_data = d['stu_data']
+        pro_data = d['pro_data']
+        que_proc = d['que_proc']
+        pro_proc = d['pro_proc']
+        que_to_stu = d['que_to_stu']
+        pos_pairs = d['pos_pairs']
+
+    # init text processor
+    tp = TextProcessor()
+
+    # prepare the data
+    professionals_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'pro_sample.csv'))
+    pro_tags_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'tag_users_sample.csv'))
+
+    answers = pd.read_csv(os.path.join(DATA_PATH, 'answers.csv'))
+    questions = pd.read_csv(os.path.join(DATA_PATH, 'questions.csv'))
+
+    professionals_sample['professionals_date_joined'] = pd.to_datetime(professionals_sample['professionals_date_joined'], infer_datetime_format=True)
+
+    answers['answers_date_added'] = pd.to_datetime(answers['answers_date_added'], infer_datetime_format=True)
+    answers['answers_body'] = answers['answers_body'].apply(tp.process)
+
+    questions['questions_date_added'] = pd.to_datetime(questions['questions_date_added'], infer_datetime_format=True)
+    questions['questions_title'] = questions['questions_title'].apply(tp.process)
+    questions['questions_body'] = questions['questions_body'].apply(tp.process)
+    questions['questions_whole'] = questions['questions_title'] + ' ' + questions['questions_body']
+
+    pred = Predictor(model, que_data, stu_data, pro_data, que_proc, pro_proc, que_to_stu, pos_pairs)
+    formatter = Formatter(DATA_PATH)
     try:
       que_dict = {
           'questions_id': ['0'],
@@ -83,6 +126,52 @@ def question():
 
 @app.route("/api/professional", methods = ['POST'])
 def professional():
+
+
+  # init model
+  model = DistanceModel(que_dim= 34 - 2 + 8 - 2,
+                                    que_input_embs=[102, 42], que_output_embs=[2, 2],
+                                    pro_dim=42 - 2,
+                                    pro_input_embs=[102, 102, 42], pro_output_embs=[2, 2, 2],
+                                    inter_dim=20, output_dim=10)
+  # load weights
+  model.load_weights(os.path.join(DUMP_PATH, 'model.h5'))
+
+  # load dumped data
+  with open(os.path.join(DUMP_PATH, 'dump.pkl'), 'rb') as file:
+      d = pickle.load(file)
+      que_data = d['que_data']
+      stu_data = d['stu_data']
+      pro_data = d['pro_data']
+      que_proc = d['que_proc']
+      pro_proc = d['pro_proc']
+      que_to_stu = d['que_to_stu']
+      pos_pairs = d['pos_pairs']
+
+  # init text processor
+  tp = TextProcessor()
+
+  # prepare the data
+  professionals_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'pro_sample.csv'))
+  pro_tags_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'tag_users_sample.csv'))
+
+  answers = pd.read_csv(os.path.join(DATA_PATH, 'answers.csv'))
+  questions = pd.read_csv(os.path.join(DATA_PATH, 'questions.csv'))
+
+  professionals_sample['professionals_date_joined'] = pd.to_datetime(professionals_sample['professionals_date_joined'], infer_datetime_format=True)
+
+  answers['answers_date_added'] = pd.to_datetime(answers['answers_date_added'], infer_datetime_format=True)
+  answers['answers_body'] = answers['answers_body'].apply(tp.process)
+
+  questions['questions_date_added'] = pd.to_datetime(questions['questions_date_added'], infer_datetime_format=True)
+  questions['questions_title'] = questions['questions_title'].apply(tp.process)
+  questions['questions_body'] = questions['questions_body'].apply(tp.process)
+  questions['questions_whole'] = questions['questions_title'] + ' ' + questions['questions_body']
+
+  pred = Predictor(model, que_data, stu_data, pro_data, que_proc, pro_proc, que_to_stu, pos_pairs)
+  formatter = Formatter(DATA_PATH)
+
+
   try:
     pro_dict = {
         'professionals_id': [],
