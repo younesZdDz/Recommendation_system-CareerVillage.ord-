@@ -21,7 +21,8 @@ from predictor.predictor import Predictor, Formatter
 from preprocessors.queproc import QueProc
 from preprocessors.proproc import ProProc
 import traceback
-
+import time
+start_time = time.time()
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
 
@@ -77,6 +78,7 @@ formatter = Formatter(DATA_PATH)
 app = Flask(__name__, static_url_path='', template_folder='view')
 
 # Routes
+print("--- %s seconds ---" % (time.time() - start_time))
 
 @app.route('/')
 def index():
