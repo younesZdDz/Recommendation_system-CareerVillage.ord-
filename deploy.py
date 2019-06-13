@@ -42,7 +42,7 @@ model = DistanceModel(que_dim= 34 - 2 + 8 - 2,
 model.load_weights(os.path.join(DUMP_PATH, 'model.h5'))
 
 # load dumped data
-with open(os.path.join(DUMP_PATH, 'dump.pkl'), 'rb') as file:
+with open(os.path.join(DUMP_PATH, 'light_dump.pkl'), 'rb') as file:
     d = pickle.load(file)
     que_proc = d['que_proc']
     pro_proc = d['pro_proc']
