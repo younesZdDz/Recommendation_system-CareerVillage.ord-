@@ -9,6 +9,7 @@ from preprocessors.queproc import QueProc
 from preprocessors.proproc import ProProc
 from utils.utils import TextProcessor
 import pickle
+import psutil
 
 DUMP_PATH = 'dump'
 
@@ -36,16 +37,10 @@ class Predictor:
         # construct mappings from entity id to features
         with open(os.path.join(DUMP_PATH, 'predictor_dump.pkl'), 'rb') as file:
             d = pickle.load(file)
-            self.que_dict = d['que_dict']
             self.stu_dict = d['stu_dict']
-            self.pro_dict = d['pro_dict']
             self.entity_to_paired = d['entity_to_paired']
-            self.pro_feat = d['pro_feat']
             self.pro_ids = d['pro_ids']
-            self.que_feat = d['que_feat']
             self.que_ids = d['que_ids']
-            self.que_lat_vecs = d['que_lat_vecs']
-            self.pro_lat_vecs = d['pro_lat_vecs']
             self.que_tree = d['que_tree']
             self.pro_tree = d['pro_tree']
 
@@ -148,6 +143,7 @@ class Predictor:
         :return: dataframe of question's ids, matched question's ids and similarity scores
         """
         lat_vecs = self.__get_que_latent(que_df, que_tags)
+        print('in : ',psutil.Process(os.getpid()).memory_info().rss)
         return self.__get_ques_by_latent(que_df['questions_id'].values, lat_vecs, top)
 
     def find_ques_by_pro(self, pro_df: pd.DataFrame, que_df: pd.DataFrame, ans_df: pd.DataFrame,
@@ -163,6 +159,7 @@ class Predictor:
         :return: dataframe of professional's ids, matched question's ids and similarity scores
         """
         lat_vecs = self.__get_pro_latent(pro_df, que_df, ans_df, pro_tags)
+        print('in : ',psutil.Process(os.getpid()).memory_info().rss)
         return self.__get_ques_by_latent(pro_df['professionals_id'].values, lat_vecs, top)
 
 

@@ -23,6 +23,8 @@ from preprocessors.queproc import QueProc
 from preprocessors.proproc import ProProc
 import traceback
 import time
+import psutil
+
 start_time = time.time()
 
 pd.set_option('display.max_columns', 100, 'display.width', 1024)
@@ -46,21 +48,24 @@ with open(os.path.join(DUMP_PATH, 'light_dump.pkl'), 'rb') as file:
     d = pickle.load(file)
     que_proc = d['que_proc']
     pro_proc = d['pro_proc']
+    del d
 
 # init text processor
 tp = TextProcessor()
 
 # prepare the data
-professionals_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'pro_sample.csv'))
-pro_tags_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'tag_users_sample.csv'))
+#professionals_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'pro_sample.csv'))
+#pro_tags_sample = pd.read_csv(os.path.join(SAMPLE_PATH, 'tag_users_sample.csv'))
 
 with open(os.path.join(DUMP_PATH, 'origin_data_dump.pkl'), 'rb') as file:
     d = pickle.load(file)
     questions = d['questions']
     answers = d['answers']
+    del d
+    
 
 
-professionals_sample['professionals_date_joined'] = pd.to_datetime(professionals_sample['professionals_date_joined'], infer_datetime_format=True)
+#professionals_sample['professionals_date_joined'] = pd.to_datetime(professionals_sample['professionals_date_joined'], infer_datetime_format=True)
 
 answers['answers_date_added'] = pd.to_datetime(answers['answers_date_added'], infer_datetime_format=True)
 
@@ -68,6 +73,9 @@ questions['questions_date_added'] = pd.to_datetime(questions['questions_date_add
 
 
 pred = Predictor(model, que_proc, pro_proc)
+del que_proc
+del pro_proc
+
 formatter = Formatter(DATA_PATH)
 
 # init flask server
@@ -105,10 +113,13 @@ def question():
            return json.dumps([], default=str)
 
       que_df, que_tags = Formatter.convert_que_dict(que_dict)
+
+      print('before : ',psutil.Process(os.getpid()).memory_info().rss)
+
       tmp = pred.find_ques_by_que(que_df, que_tags)
       final_df = formatter.get_que(tmp).fillna('')
       final_data = final_df.to_dict('records')
-
+      print('after : ',psutil.Process(os.getpid()).memory_info().rss)
       return json.dumps(final_data, allow_nan=False) 
 
     except Exception as e:
@@ -130,11 +141,17 @@ def professional():
       }
 
     data = request.get_json()
+    for professionals_sample in pd.read_csv(os.path.join(SAMPLE_PATH, 'pro_sample.csv'), chunksize=16):
+      pro = professionals_sample[professionals_sample['professionals_id'] == data['professionals_id']]
+      if pro.shape[0]>0 :
+        break
+    pro['professionals_date_joined'] = pd.to_datetime(pro['professionals_date_joined'], infer_datetime_format=True)
 
-    pro = professionals_sample[professionals_sample['professionals_id'] == data['professionals_id']]
     pro = pro.to_dict('records')[0]
-
-    tag = pro_tags_sample[pro_tags_sample['tag_users_user_id'] == data['professionals_id']]
+    for pro_tags_sample in pd.read_csv(os.path.join(SAMPLE_PATH, 'tag_users_sample.csv'), chunksize=16) : 
+      tag = pro_tags_sample[pro_tags_sample['tag_users_user_id'] == data['professionals_id']]
+      if tag.shape[0] > 0:
+        break
 
     for key, val in pro.items():
         if key in pro_dict and val:
@@ -147,13 +164,18 @@ def professional():
          return json.dumps([], default=str)
     
     pro_df, pro_tags = Formatter.convert_pro_dict(pro_dict)
+    print('before : ',psutil.Process(os.getpid()).memory_info().rss)
     tmp = pred.find_ques_by_pro(pro_df, questions, answers, pro_tags)
     final_df = formatter.get_que(tmp).fillna('')
     
     final_data = final_df.to_dict('records')
-    
+    print('after : ',psutil.Process(os.getpid()).memory_info().rss)
     return json.dumps(final_data, allow_nan=False) 
       
   except Exception as e:
     traceback.print_exc()
     return json.dumps([], default=str)
+
+
+if __name__ == '__main__':
+  app.run(debug=False, host='0.0.0.0', port = 8000)
